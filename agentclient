@@ -1,0 +1,53 @@
+/**
+ * Created by Olutimileyin on 4/27/2015.
+ */
+$(document).ready(function(){
+    var socket = io.connect('http://localhost:3700');
+    var agentname;
+    var action = 0;
+    //var messages = [];
+    $('#send').click(function(e){
+        //e.preventDefault();
+        if(action == 0){
+            alert('timi');
+            agentname = $('#name').val();
+            socket.emit('agent',agentname);
+            $('#msgbox').show();
+            action++;
+        }else {
+            var msg = $('textarea').val();
+            var receiver =$('#msgheader').text();
+            //socket.emit('message', msg);
+            socket.emit('deliver', msg, receiver);
+            $('textarea').val('');
+        }
+    });
+
+    socket.on('updatelist', function(data){
+        $('#customerlist').append('<div id="'+data+'"><a id="'+data+'" href="#">'+data+'</a></div>');
+    });
+
+    socket.on('updatechat',function(username, message, receiver){
+        $('#'+username).css('background-color','blue');
+        if ($('#msgheader').text() == username || username == agentname)
+        {
+            $('#content').append('<div>'+username+': '+message+'</div>');
+        }
+    });
+
+    socket.on('prev_msg', function(prev_msg){
+        for(var i = 0; i < prev_msg.length; i++)
+        {
+            alert(prev.msg[i].sender);
+            $('#content').append('<div>'+prev_msg[i].sender+': '+prev_msg[i].message+'</div>');
+        }
+    });
+
+    $(document).on("click","a",function(){
+        $('#msgheader').text($(this).attr('id'));
+        $(this).css('background','none');
+        $('#content').html('');
+        var cust_id = $(this).attr('id');
+        socket.emit('get_chat', cust_id);
+    });
+});
